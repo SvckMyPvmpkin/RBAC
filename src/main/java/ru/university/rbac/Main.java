@@ -2,10 +2,11 @@ package ru.university.rbac;
 
 import ru.university.rbac.model.User;
 import ru.university.rbac.model.Permission;
+import ru.university.rbac.model.Role;
 
 public class Main {
     public static void main(String[] args) {
-        System.out.println("ТЕСТ СОЗДАНИЯ ПОЛЬЗОВАТЕЛЯ\n");
+        System.out.println("--ТЕСТ СОЗДАНИЯ ПОЛЬЗОВАТЕЛЯ--\n");
 
         testUser("Успешное создание", "admin_2024", "Иван Иванов", "ivan@example.com");
 
@@ -22,7 +23,7 @@ public class Main {
         testUser("Пустое имя (blank)", "manager", "   ", "manager@work.com");
         testUser("Null в полях", null, "Name", "email@test.com");
 
-        System.out.println("\nТЕСТ ДОСТУПА ПОЛЬЗОВАТЕЛЯ\n");
+        System.out.println("\n--ТЕСТ ДОСТУПА ПОЛЬЗОВАТЕЛЯ--\n");
 
         // тест успешного создания
         Permission p1 = new Permission("read ", "USERS", "Доступ на чтение");
@@ -34,6 +35,23 @@ public class Main {
 
         // тест на пустоту в поле description
         testPermission("DELETE","settings", " " );
+
+        System.out.println("\n--ТЕСТ РОЛЕЙ ПОЛЬЗОВАТЕЛЯ--");
+
+        Role adminRole = new Role("Administrator", "Full system access");
+        Permission read = new Permission("READ", "users", "Can view user list");
+        Permission write = new Permission("WRITE", "users", "Can edit users");
+        Permission delete = new Permission("DELETE", "users", "Can delete users");
+
+        adminRole.addPermission(read);
+        adminRole.addPermission(write);
+        adminRole.addPermission(delete);
+
+        System.out.println("\n" + adminRole.format());
+
+        // тест удаления роли
+        adminRole.removePermission(read);
+        System.out.println("После удаления READ:\n" + adminRole.format());
     }
 
     public static void testUser(String testName, String username, String fullname, String email) {
