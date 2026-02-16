@@ -60,7 +60,6 @@ public class Role {
         return Objects.hash(id);
     }
 
-    // Метод format() для сложного вывода (Пункт 5 ТЗ)
     public String format() {
         StringBuilder sb = new StringBuilder();
         sb.append(String.format("Role: %s [ID: %s]\n", name, id));

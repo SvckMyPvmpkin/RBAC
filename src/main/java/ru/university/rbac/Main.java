@@ -3,10 +3,11 @@ package ru.university.rbac;
 import ru.university.rbac.model.User;
 import ru.university.rbac.model.Permission;
 import ru.university.rbac.model.Role;
+import ru.university.rbac.model.AssignmentMetadata;
 
 public class Main {
     public static void main(String[] args) {
-        System.out.println("--ТЕСТ СОЗДАНИЯ ПОЛЬЗОВАТЕЛЯ--\n");
+        System.out.println("--ТЕСТ СОЗДАНИЯ ПОЛЬЗОВАТЕЛЯ--");
 
         testUser("Успешное создание", "admin_2024", "Иван Иванов", "ivan@example.com");
 
@@ -38,6 +39,7 @@ public class Main {
 
         System.out.println("\n--ТЕСТ РОЛЕЙ ПОЛЬЗОВАТЕЛЯ--");
 
+        // тест создания пользователя с ролью
         Role adminRole = new Role("Administrator", "Full system access");
         Permission read = new Permission("READ", "users", "Can view user list");
         Permission write = new Permission("WRITE", "users", "Can edit users");
@@ -52,6 +54,16 @@ public class Main {
         // тест удаления роли
         adminRole.removePermission(read);
         System.out.println("После удаления READ:\n" + adminRole.format());
+
+        System.out.println("--ТЕСТ МЕТАДАННЫХ--\n");
+
+        // создание метаданных
+        AssignmentMetadata meta = AssignmentMetadata.now("admin_user", "Initial setup");
+        System.out.println("Metadata: " + meta.format());
+
+        // тест на пустую причину
+        AssignmentMetadata metaEmpty = AssignmentMetadata.now("system", "");
+        System.out.println("Metadata (Без указания причины): " + metaEmpty.format());
     }
 
     public static void testUser(String testName, String username, String fullname, String email) {
