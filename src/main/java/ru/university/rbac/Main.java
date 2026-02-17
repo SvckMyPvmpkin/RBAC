@@ -1,9 +1,9 @@
 package ru.university.rbac;
 
-import ru.university.rbac.model.User;
-import ru.university.rbac.model.Permission;
-import ru.university.rbac.model.Role;
-import ru.university.rbac.model.AssignmentMetadata;
+import ru.university.rbac.model.*;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class Main {
     public static void main(String[] args) {
@@ -64,6 +64,29 @@ public class Main {
         // тест на пустую причину
         AssignmentMetadata metaEmpty = AssignmentMetadata.now("system", "");
         System.out.println("Metadata (Без указания причины): " + metaEmpty.format());
+
+        System.out.println("\n--ТЕСТИРОВАНИЕ НАЗНАЧЕНИЙ--\n");
+
+        // тест создания объекта
+        User worker = User.create("ivan_dev", "Иван Программистов", "ivan@company.com");
+        Role devRole = new Role("Developer", "Access to source code");
+        AssignmentMetadata meta1 = AssignmentMetadata.now("admin", "New employee hire");
+
+        // назначение постоянной роли
+        PermanentAssignment perm = new PermanentAssignment(worker, devRole, meta1);
+        System.out.println(perm.summary());
+
+        // отзыв постоянной роли
+        System.out.println("\n--ОТЗЫВ РОЛИ--");
+        perm.revoke();
+        System.out.println(perm.summary());
+
+        // временное назначение роли
+        String tomorrow = LocalDateTime.now().plusDays(1).format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm"));
+        TemporaryAssignment temp = new TemporaryAssignment(worker, devRole, meta1, tomorrow, false);
+
+        System.out.println("\n--ВРЕМЕННАЯ РОЛЬ--");
+        System.out.println(temp.summary());
     }
 
     public static void testUser(String testName, String username, String fullname, String email) {
