@@ -30,3 +30,4 @@ public record AssignmentMetadata(String assignedBy, String assignedAt, String re
         return String.format("Назначен %s в %s. Причина: %s", assignedBy, assignedAt, reason);
     }
 }
+
