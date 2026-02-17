@@ -75,4 +75,9 @@ public class Role {
         }
         return sb.toString();
     }
+
+    @Override
+    public String toString() {
+        return "Role{id='" + id + "', name='" + name + "'}";
+    }
 }
