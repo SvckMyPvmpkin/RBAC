@@ -1,7 +1,5 @@
 package ru.university.rbac.model;
 
-import org.w3c.dom.ls.LSOutput;
-
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -30,4 +28,3 @@ public record AssignmentMetadata(String assignedBy, String assignedAt, String re
         return String.format("Назначен %s в %s. Причина: %s", assignedBy, assignedAt, reason);
     }
 }
-
