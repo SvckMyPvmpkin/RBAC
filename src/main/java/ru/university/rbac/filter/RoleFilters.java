@@ -21,7 +21,6 @@ public class RoleFilters {
     }
 
     public static RoleFilter hasAtLeastNPermissions(int n) {
-        // Проверяем размер набора прав через геттер, который возвращает Set
         return r -> r.getPermissions().size() >= n;
     }
 }

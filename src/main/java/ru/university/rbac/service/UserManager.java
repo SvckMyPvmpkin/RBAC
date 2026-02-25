@@ -47,6 +47,12 @@ public class UserManager implements Repository<User> {
                 .toList();
     }
 
+    public List<User> findByFilter(UserFilter filter) {
+        return users.values().stream()
+                .filter(filter::test)
+                .toList();
+    }
+
     public void update(String username, String newFullName, String newEmail) {
         if (!exists(username)) {
             throw new NoSuchElementException("Пользователь не найден");
@@ -58,6 +64,19 @@ public class UserManager implements Repository<User> {
 
     public boolean exists(String username) {
         return users.containsKey(username);
+    }
+
+    @Override
+    public boolean equals(Object o){
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        UserManager userManager = (UserManager) o;
+        return users.equals(userManager.users);
+    }
+
+    @Override
+    public int hashCode(){
+        return users.hashCode();
     }
 
     @Override public int count() {
