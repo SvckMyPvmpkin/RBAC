@@ -3,6 +3,7 @@ package ru.university.rbac.command;
 import ru.university.rbac.filter.*;
 import ru.university.rbac.model.*;
 import ru.university.rbac.util.AuditLog;
+import ru.university.rbac.util.ReportGenerator;
 
 import java.util.*;
 
@@ -14,6 +15,7 @@ public class CommandRegistry {
         registerAssignmentCommands(parser);
         registerPermissionCommands(parser);
         registerSystemCommands(parser);
+        registerReportCommands(parser);
     }
 
     private static void logAction(String action, RBACSystem system, String target, String details) {
@@ -463,5 +465,38 @@ public class CommandRegistry {
                 System.out.println("Ошибка при загрузке: " + e.getMessage());
             }
         });
+    }
+
+    // 6. КОМАНДЫ ОТЧЕТОВ
+    private static void registerReportCommands(CommandParser parser) {
+        parser.registerCommand("report-users", "Отчет по пользователям", (scanner, system) -> {
+            String report = new ReportGenerator().generateUserReport(system.getUserManager(), system.getAssignmentManager());
+            System.out.println(report);
+            handleExport(scanner, system, report, "USER_REPORT");
+        });
+
+        parser.registerCommand("report-roles", "Отчет по ролям", (scanner, system) -> {
+            String report = new ReportGenerator().generateRoleReport(system.getRoleManager(), system.getAssignmentManager());
+            System.out.println(report);
+            handleExport(scanner, system, report, "ROLE_REPORT");
+        });
+
+        parser.registerCommand("report-matrix", "Матрица прав", (scanner, system) -> {
+            String report = new ReportGenerator().generatePermissionMatrix(system.getUserManager(), system.getAssignmentManager());
+            System.out.println(report);
+            handleExport(scanner, system, report, "PERMISSION_MATRIX");
+        });
+    }
+
+    private static void handleExport(Scanner scanner, RBACSystem system, String report, String actionName) {
+        System.out.print("Сохранить отчет в файл? (да/нет): ");
+        if (scanner.nextLine().equalsIgnoreCase("да")) {
+            System.out.print("Введите имя файла: ");
+            String filename = scanner.nextLine();
+            new ReportGenerator().exportToFile(report, filename);
+            logAction(actionName + "_EXPORT", system, filename, "Успешно");
+        } else {
+            logAction(actionName + "_VIEW", system, "console", "Просмотр в консоли");
+        }
     }
 }
