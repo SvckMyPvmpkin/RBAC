@@ -447,19 +447,42 @@ public class CommandRegistry {
         });
 
         parser.registerCommand("load", "Загрузить данные из файла", (scanner, system) -> {
-            String filename = ConsoleUtils.promptString(scanner, "Введите имя файла для загрузки", true);
+            String filename = ConsoleUtils.promptString(scanner, "Введите имя файла", true);
             try (java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.FileReader(filename))) {
                 String line;
                 while ((line = reader.readLine()) != null) {
                     String[] parts = line.split(";");
-                    if (parts[0].equals("USER")) system.getUserManager().add(User.create(parts[1], parts[2], parts[3]));
-                    else if (parts[0].equals("ROLE")) system.getRoleManager().add(new Role(parts[1], parts[2]));
+                    if (parts.length < 1) continue;
+
+                    switch (parts[0]) {
+                        case "USER" -> {
+                            if (!system.getUserManager().exists(parts[1])) {
+                                system.getUserManager().add(User.create(parts[1], parts[2], parts[3]));
+                            }
+                        }
+                        case "ROLE" -> {
+                            if (!system.getRoleManager().exists(parts[1])) {
+                                system.getRoleManager().add(new Role(parts[1], parts[2]));
+                            }
+                        }
+                        case "ASSIGN" -> {
+                            Optional<User> u = system.getUserManager().findByUsername(parts[1]);
+                            Optional<Role> r = system.getRoleManager().findByName(parts[2]);
+
+                            if (u.isPresent() && r.isPresent()) {
+                                if (!system.getAssignmentManager().userHasRole(u.get(), r.get())) {
+                                    system.getAssignmentManager().add(new PermanentAssignment(u.get(), r.get(),
+                                            AssignmentMetadata.now("system", "Loaded from file")));
+                                }
+                            }
+                        }
+                    }
                 }
                 logAction("LOAD_DATA", system, filename, "Успешно");
-                System.out.println(ConsoleUtils.GREEN + "Данные загружены." + ConsoleUtils.RESET);
+                System.out.println(ConsoleUtils.GREEN + "Данные успешно загружены (дубликаты пропущены)." + ConsoleUtils.RESET);
             } catch (Exception e) {
                 logAction("LOAD_FAIL", system, filename, e.getMessage());
-                System.out.println(ConsoleUtils.RED + "Ошибка: " + e.getMessage() + ConsoleUtils.RESET);
+                System.out.println(ConsoleUtils.RED + "Ошибка при загрузке: " + e.getMessage() + ConsoleUtils.RESET);
             }
         });
     }
