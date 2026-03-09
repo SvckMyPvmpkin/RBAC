@@ -3,12 +3,23 @@ package ru.university.rbac.service;
 import ru.university.rbac.model.User;
 import ru.university.rbac.filter.UserFilter;
 import java.util.*;
+import ru.university.rbac.util.ValidationUtils;
 
 public class UserManager implements Repository<User> {
     private final Map<String, User> users = new HashMap<>();
 
     @Override
     public void add(User user) {
+        ValidationUtils.requireNonEmpty(user.username(), "Username");
+        ValidationUtils.requireNonEmpty(user.email(), "Email");
+
+        if (!ValidationUtils.isValidUsername(user.username())) {
+            throw new IllegalArgumentException("Неверный формат username!");
+        }
+        if (!ValidationUtils.isValidEmail(user.email())) {
+            throw new IllegalArgumentException("Неверный формат email!");
+        }
+
         if (users.containsKey(user.username())) {
             throw new IllegalArgumentException("Такой пользователь уже есть: " + user.username());
         }
@@ -58,7 +69,14 @@ public class UserManager implements Repository<User> {
             throw new NoSuchElementException("Пользователь не найден");
         }
 
-        User updated = User.create(username, newFullName, newEmail);
+        ValidationUtils.requireNonEmpty(newFullName, "Full Name");
+        if (!ValidationUtils.isValidEmail(newEmail)) {
+            throw new IllegalArgumentException("Неверный формат email!");
+        }
+
+        String normalizedFullName = ValidationUtils.normalizeString(newFullName);
+
+        User updated = User.create(username, normalizedFullName, newEmail);
         users.put(username, updated);
     }
 

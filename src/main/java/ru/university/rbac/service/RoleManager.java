@@ -4,6 +4,7 @@ import ru.university.rbac.model.Role;
 import ru.university.rbac.model.Permission;
 import ru.university.rbac.filter.RoleFilter;
 import java.util.*;
+import ru.university.rbac.util.ValidationUtils;
 
 public class RoleManager implements Repository<Role> {
     private final Map<String, Role> rolesById = new HashMap<>();
@@ -17,11 +18,17 @@ public class RoleManager implements Repository<Role> {
 
     @Override
     public void add(Role role) {
-        if (rolesByName.containsKey(role.getName())) {
-            throw new IllegalArgumentException("Имя роли должно быть уникальным: " + role.getName());
+        ValidationUtils.requireNonEmpty(role.getName(), "Имя роли");
+        ValidationUtils.requireNonEmpty(role.getDescription(), "Описание роли");
+
+        String normalizedName = ValidationUtils.normalizeString(role.getName());
+
+        if (rolesByName.containsKey(normalizedName)) {
+            throw new IllegalArgumentException("Имя роли должно быть уникальным: " + normalizedName);
         }
+
         rolesById.put(role.getId(), role);
-        rolesByName.put(role.getName(), role);
+        rolesByName.put(normalizedName, role);
     }
 
     @Override
@@ -56,10 +63,12 @@ public class RoleManager implements Repository<Role> {
     }
 
     public void addPermissionToRole(String roleName, Permission permission) {
+        ValidationUtils.requireNonEmpty(roleName, "Имя роли");
         findByName(roleName).ifPresent(role -> role.addPermission(permission));
     }
 
     public void removePermissionFromRole(String roleName, Permission permission) {
+        ValidationUtils.requireNonEmpty(roleName, "Имя роли");
         findByName(roleName).ifPresent(role -> role.removePermission(permission));
     }
 

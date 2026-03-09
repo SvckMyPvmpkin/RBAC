@@ -1,8 +1,43 @@
+//plugins {
+//    id 'java'
+//    id 'application'
+//}
+//
+//group = 'org.example'
+//version = '1.0-SNAPSHOT'
+//
+//repositories {
+//    mavenCentral()
+//}
+//
+//dependencies {
+//    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.0'
+//
+//    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+//}
+//
+//test {
+//    useJUnitPlatform()
+//}
+//
+//tasks.withType(JavaCompile) {
+//    options.encoding = 'UTF-8'
+//}
+//
+//tasks.withType(JavaExec) {
+//    systemProperty 'file.encoding', 'UTF-8'
+//}
+//
+//application {
+//    mainClass = 'src.main.java.ru.university.rbac.Main'
+//}
+
 plugins {
     id 'java'
+    id 'application'
 }
 
-group = 'org.example'
+group = 'ru.university'
 version = '1.0-SNAPSHOT'
 
 repositories {
@@ -10,19 +45,23 @@ repositories {
 }
 
 dependencies {
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.0'
-
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-}
-
-test {
-    useJUnitPlatform()
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
 }
 
 tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
 }
 
-tasks.withType(JavaExec) {
-    systemProperty 'file.encoding', 'UTF-8'
+application {
+    mainClass = 'ru.university.rbac.Main'
+}
+
+run {
+    standardInput = System.in
+    systemProperty "file.encoding", "utf-8"
+}
+
+test {
+    useJUnitPlatform()
 }
