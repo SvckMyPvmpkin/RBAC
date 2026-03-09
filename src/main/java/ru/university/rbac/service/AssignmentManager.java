@@ -4,6 +4,7 @@ import ru.university.rbac.model.*;
 import ru.university.rbac.filter.AssignmentFilter;
 import java.util.*;
 import java.util.stream.Collectors;
+import ru.university.rbac.util.ValidationUtils;
 
 public class AssignmentManager implements Repository<RoleAssignment> {
     private final Map<String, RoleAssignment> assignments = new HashMap<>();
@@ -18,6 +19,7 @@ public class AssignmentManager implements Repository<RoleAssignment> {
 
     @Override
     public void add(RoleAssignment assignment) {
+        ValidationUtils.requireNonEmpty(assignment.assignmentId(), "Assignment ID");
         if (!userManager.exists(assignment.user().username())) {
             throw new IllegalArgumentException("Ошибка: Пользователь не существует в системе!");
         }
@@ -90,6 +92,7 @@ public class AssignmentManager implements Repository<RoleAssignment> {
     }
 
     public void revokeAssignment(String assignmentId) {
+        ValidationUtils.requireNonEmpty(assignmentId, "Assignment ID");
         RoleAssignment assignment = assignments.get(assignmentId);
         if (assignment != null) {
             if (assignment instanceof PermanentAssignment) {
@@ -101,6 +104,10 @@ public class AssignmentManager implements Repository<RoleAssignment> {
     }
 
     public void extendTemporaryAssignment(String assignmentId, String newExpirationDate) {
+        ValidationUtils.requireNonEmpty(assignmentId, "Assignment ID");
+        if (!ValidationUtils.isValidDate(newExpirationDate)) {
+            throw new IllegalArgumentException("Неверный формат даты! Используйте YYYY-MM-DD");
+        }
         RoleAssignment assignment = assignments.get(assignmentId);
         if (assignment != null) {
             if (assignment instanceof TemporaryAssignment) {
