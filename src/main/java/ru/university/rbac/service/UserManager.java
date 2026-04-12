@@ -4,12 +4,13 @@ import ru.university.rbac.model.User;
 import ru.university.rbac.filter.UserFilter;
 import java.util.*;
 import ru.university.rbac.util.ValidationUtils;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class UserManager implements Repository<User> {
-    private final Map<String, User> users = new HashMap<>();
+    private final Map<String, User> users = new ConcurrentHashMap<>();
 
     @Override
-    public void add(User user) {
+    public synchronized void add(User user) {
         ValidationUtils.requireNonEmpty(user.username(), "Username");
         ValidationUtils.requireNonEmpty(user.email(), "Email");
 
@@ -27,7 +28,7 @@ public class UserManager implements Repository<User> {
     }
 
     @Override
-    public boolean remove(User user) {
+    public synchronized boolean remove(User user) {
         return users.remove(user.username()) != null;
     }
 
@@ -64,7 +65,7 @@ public class UserManager implements Repository<User> {
                 .toList();
     }
 
-    public void update(String username, String newFullName, String newEmail) {
+    public synchronized void update(String username, String newFullName, String newEmail) {
         if (!exists(username)) {
             throw new NoSuchElementException("Пользователь не найден");
         }
@@ -97,10 +98,13 @@ public class UserManager implements Repository<User> {
         return users.hashCode();
     }
 
-    @Override public int count() {
+    @Override
+    public int count() {
         return users.size();
     }
-    @Override public void clear() {
+
+    @Override
+    public synchronized void clear() {
         users.clear();
     }
 }

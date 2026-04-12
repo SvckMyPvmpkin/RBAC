@@ -5,19 +5,20 @@ import ru.university.rbac.model.Permission;
 import ru.university.rbac.filter.RoleFilter;
 import java.util.*;
 import ru.university.rbac.util.ValidationUtils;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class RoleManager implements Repository<Role> {
-    private final Map<String, Role> rolesById = new HashMap<>();
-    private final Map<String, Role> rolesByName = new HashMap<>();
+    private final Map<String, Role> rolesById = new ConcurrentHashMap<>();
+    private final Map<String, Role> rolesByName = new ConcurrentHashMap<>();
 
-    private AssignmentManager assignmentManager;
+    private volatile AssignmentManager assignmentManager;
 
     public void setAssignmentManager(AssignmentManager assignmentManager) {
         this.assignmentManager = assignmentManager;
     }
 
     @Override
-    public void add(Role role) {
+    public synchronized void add(Role role) {
         ValidationUtils.requireNonEmpty(role.getName(), "Имя роли");
         ValidationUtils.requireNonEmpty(role.getDescription(), "Описание роли");
 
@@ -32,7 +33,7 @@ public class RoleManager implements Repository<Role> {
     }
 
     @Override
-    public boolean remove(Role role) {
+    public synchronized boolean remove(Role role) {
         if (assignmentManager != null) {
             boolean isAssigned = assignmentManager.getActiveAssignments().stream()
                     .anyMatch(a -> a.role().equals(role));
@@ -62,12 +63,12 @@ public class RoleManager implements Repository<Role> {
                 .toList();
     }
 
-    public void addPermissionToRole(String roleName, Permission permission) {
+    public synchronized void addPermissionToRole(String roleName, Permission permission) {
         ValidationUtils.requireNonEmpty(roleName, "Имя роли");
         findByName(roleName).ifPresent(role -> role.addPermission(permission));
     }
 
-    public void removePermissionFromRole(String roleName, Permission permission) {
+    public synchronized void removePermissionFromRole(String roleName, Permission permission) {
         ValidationUtils.requireNonEmpty(roleName, "Имя роли");
         findByName(roleName).ifPresent(role -> role.removePermission(permission));
     }
@@ -94,7 +95,7 @@ public class RoleManager implements Repository<Role> {
     @Override public int count() {
         return rolesById.size();
     }
-    @Override public void clear() {
+    @Override public synchronized void clear() {
         rolesById.clear(); rolesByName.clear();
     }
 }

@@ -5,9 +5,10 @@ import ru.university.rbac.filter.AssignmentFilter;
 import java.util.*;
 import java.util.stream.Collectors;
 import ru.university.rbac.util.ValidationUtils;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class AssignmentManager implements Repository<RoleAssignment> {
-    private final Map<String, RoleAssignment> assignments = new HashMap<>();
+    private final Map<String, RoleAssignment> assignments = new ConcurrentHashMap<>();
 
     private final UserManager userManager;
     private final RoleManager roleManager;
@@ -18,7 +19,7 @@ public class AssignmentManager implements Repository<RoleAssignment> {
     }
 
     @Override
-    public void add(RoleAssignment assignment) {
+    public synchronized void add(RoleAssignment assignment) {
         ValidationUtils.requireNonEmpty(assignment.assignmentId(), "Assignment ID");
         if (!userManager.exists(assignment.user().username())) {
             throw new IllegalArgumentException("Ошибка: Пользователь не существует в системе!");
@@ -82,7 +83,7 @@ public class AssignmentManager implements Repository<RoleAssignment> {
 
     public List<RoleAssignment> getExpiredAssignments() {
         return assignments.values().stream()
-                .filter(a -> !a.isActive()) // берем все неактивные
+                .filter(a -> !a.isActive())
                 .toList();
     }
 
@@ -91,7 +92,7 @@ public class AssignmentManager implements Repository<RoleAssignment> {
                 .anyMatch(a -> a.user().equals(user) && a.role().equals(role) && a.isActive());
     }
 
-    public void revokeAssignment(String assignmentId) {
+    public synchronized void revokeAssignment(String assignmentId) {
         ValidationUtils.requireNonEmpty(assignmentId, "Assignment ID");
         RoleAssignment assignment = assignments.get(assignmentId);
         if (assignment != null) {
@@ -103,7 +104,7 @@ public class AssignmentManager implements Repository<RoleAssignment> {
         }
     }
 
-    public void extendTemporaryAssignment(String assignmentId, String newExpirationDate) {
+    public synchronized void extendTemporaryAssignment(String assignmentId, String newExpirationDate) {
         ValidationUtils.requireNonEmpty(assignmentId, "Assignment ID");
         if (!ValidationUtils.isValidDate(newExpirationDate)) {
             throw new IllegalArgumentException("Неверный формат даты! Используйте YYYY-MM-DD");
@@ -126,7 +127,7 @@ public class AssignmentManager implements Repository<RoleAssignment> {
         return new ArrayList<>(assignments.values());
     }
 
-    @Override public boolean remove(RoleAssignment a) {
+    @Override public synchronized boolean remove(RoleAssignment a) {
         return assignments.remove(a.assignmentId()) != null;
     }
 
@@ -134,7 +135,7 @@ public class AssignmentManager implements Repository<RoleAssignment> {
         return assignments.size();
     }
 
-    @Override public void clear() {
+    @Override public synchronized void clear() {
         assignments.clear();
     }
 }
