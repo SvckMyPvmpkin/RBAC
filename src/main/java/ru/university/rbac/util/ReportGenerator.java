@@ -12,15 +12,19 @@ import java.util.stream.Collectors;
 public class ReportGenerator {
 
     public String generateUserReport(UserManager um, AssignmentManager am) {
-        StringBuilder sb = new StringBuilder("=== ОТЧЕТ ПО ПОЛЬЗОВАТЕЛЯМ ===\n");
-        for (User u : um.findAll()) {
-            sb.append(String.format("User: %s | Email: %s\n", u.username(), u.email()));
-            List<RoleAssignment> roles = am.findByUser(u);
-            sb.append("  Роли: ").append(roles.isEmpty() ? "нет" :
-                            roles.stream().map(a -> a.role().getName()).collect(Collectors.joining(", ")))
-                    .append("\n");
-        }
-        return sb.toString();
+        String header = "=== ОТЧЕТ ПО ПОЛЬЗОВАТЕЛЯМ ===\n";
+
+        String body = um.findAll().parallelStream()
+                .map(u -> {
+                    List<RoleAssignment> roles = am.findByUser(u);
+                    String rolesStr = roles.isEmpty() ? "нет" :
+                            roles.stream().map(a -> a.role().getName()).collect(Collectors.joining(", "));
+
+                    return String.format("User: %s | Email: %s\n  Роли: %s", u.username(), u.email(), rolesStr);
+                })
+                .collect(Collectors.joining("\n"));
+
+        return header + body + "\n";
     }
 
     public String generateRoleReport(RoleManager rm, AssignmentManager am) {
@@ -33,13 +37,21 @@ public class ReportGenerator {
     }
 
     public String generatePermissionMatrix(UserManager um, AssignmentManager am) {
-        StringBuilder sb = new StringBuilder("=== МАТРИЦА ПРАВ (User x Resource) ===\n");
-        for (User u : um.findAll()) {
-            Set<Permission> perms = am.getUserPermissions(u);
-            String resources = perms.stream().map(Permission::resource).distinct().collect(Collectors.joining(", "));
-            sb.append(String.format("User: %-15s | Ресурсы: %s\n", u.username(), resources.isEmpty() ? "нет" : resources));
-        }
-        return sb.toString();
+        String header = "=== МАТРИЦА ПРАВ (User x Resource) ===\n";
+
+        String body = um.findAll().parallelStream()
+                .map(u -> {
+                    Set<Permission> perms = am.getUserPermissions(u);
+                    String resources = perms.stream()
+                            .map(Permission::resource)
+                            .distinct()
+                            .collect(Collectors.joining(", "));
+
+                    return String.format("User: %-15s | Ресурсы: %s", u.username(), resources.isEmpty() ? "нет" : resources);
+                })
+                .collect(Collectors.joining("\n"));
+
+        return header + body + "\n";
     }
 
     public void exportToFile(String report, String filename) {
