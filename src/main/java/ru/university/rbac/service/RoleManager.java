@@ -79,6 +79,12 @@ public class RoleManager implements Repository<Role> {
                 .toList();
     }
 
+    public List<Role> findByFilterParallel(RoleFilter filter) {
+        return rolesById.values().parallelStream()
+                .filter(filter::test)
+                .toList();
+    }
+
     public List<Role> findRolesWithPermission(String permissionName, String resource) {
         return rolesById.values().stream()
                 .filter(role -> role.hasPermission(permissionName, resource))

@@ -58,6 +58,12 @@ public class AssignmentManager implements Repository<RoleAssignment> {
         return assignments.values().stream().filter(filter::test).toList();
     }
 
+    public List<RoleAssignment> findByFilterParallel(AssignmentFilter filter) {
+        return assignments.values().parallelStream()
+                .filter(filter::test)
+                .toList();
+    }
+
     public List<RoleAssignment> getActiveAssignments() {
         return assignments.values().stream().filter(RoleAssignment::isActive).toList();
     }

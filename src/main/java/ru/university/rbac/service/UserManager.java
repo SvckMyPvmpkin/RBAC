@@ -65,6 +65,12 @@ public class UserManager implements Repository<User> {
                 .toList();
     }
 
+    public List<User> findByFilterParallel(UserFilter filter) {
+        return users.values().parallelStream()
+                .filter(filter::test)
+                .toList();
+    }
+
     public synchronized void update(String username, String newFullName, String newEmail) {
         if (!exists(username)) {
             throw new NoSuchElementException("Пользователь не найден");
