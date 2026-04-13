@@ -7,6 +7,8 @@ import ru.university.rbac.service.RoleManager;
 import ru.university.rbac.service.UserManager;
 
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.stream.Collectors;
 
 public class RBACSystem {
@@ -15,6 +17,7 @@ public class RBACSystem {
     private final AssignmentManager assignmentManager;
 
     private final BackgroundExecutor backgroundExecutor;
+    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
     private String currentUser;
 
@@ -119,5 +122,26 @@ public class RBACSystem {
                         "========================================",
                 usersCount, rolesCount, totalAssignments, activeAssignments, expiredAssignments, avgRoles, top3Roles
         );
+    }
+
+    public void startScheduledTasks() {
+        scheduler.scheduleAtFixedRate(() -> {
+            try {
+                assignmentManager.deactivateExpiredAssignments();
+
+                String stats = generateStatistics();
+
+                auditLog.log("SCHEDULED_STATS", "system", "statistics",
+                        "Автоматическая проверка завершена. Текущее состояние: " + stats);
+
+            } catch (Exception e) {
+                auditLog.log("SCHEDULED_TASK_ERROR", "system", "errors", e.getMessage());
+            }
+        }, 5, 30, TimeUnit.SECONDS);
+    }
+
+    public void shutdown() {
+        scheduler.shutdown();
+        backgroundExecutor.shutdown();
     }
 }

@@ -11,6 +11,8 @@ public class Main {
         RBACSystem system = new RBACSystem();
         system.initialize();
 
+        system.startScheduledTasks();
+
         CommandParser parser = new CommandParser();
         CommandRegistry.registerAll(parser);
 
