@@ -425,7 +425,10 @@ public class CommandRegistry {
 
         parser.registerCommand("exit", "Выход из программы", (scanner, system) -> {
             if (ConsoleUtils.promptYesNo(scanner, "Вы уверены, что хотите выйти?")) {
-                logAction("SYSTEM_EXIT", system, "system", "Выход из системы");
+                logAction("SYSTEM_EXIT", system, "system", "Пользователь инициировал выход");
+
+                system.shutdown();
+
                 System.out.println("Завершение работы системы. До свидания!");
                 System.exit(0);
             }

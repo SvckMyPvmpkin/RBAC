@@ -110,6 +110,18 @@ public class AssignmentManager implements Repository<RoleAssignment> {
         }
     }
 
+    public void deactivateExpiredAssignments() {
+        String now = java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm"));
+
+        for (RoleAssignment assignment : assignments.values()) {
+            if (assignment instanceof TemporaryAssignment temp && temp.isActive()) {
+                if (now.compareTo(temp.getExpiresAt()) >= 0) {
+                    temp.revoke();
+                }
+            }
+        }
+    }
+
     public synchronized void extendTemporaryAssignment(String assignmentId, String newExpirationDate) {
         ValidationUtils.requireNonEmpty(assignmentId, "Assignment ID");
         if (!ValidationUtils.isValidDate(newExpirationDate)) {
