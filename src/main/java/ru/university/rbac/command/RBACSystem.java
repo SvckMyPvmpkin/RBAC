@@ -2,6 +2,7 @@ package ru.university.rbac.command;
 
 import ru.university.rbac.model.*;
 import ru.university.rbac.service.AssignmentManager;
+import ru.university.rbac.service.BackgroundExecutor;
 import ru.university.rbac.service.RoleManager;
 import ru.university.rbac.service.UserManager;
 
@@ -13,12 +14,16 @@ public class RBACSystem {
     private final RoleManager roleManager;
     private final AssignmentManager assignmentManager;
 
+    private final BackgroundExecutor backgroundExecutor;
+
     private String currentUser;
 
     public RBACSystem() {
         this.userManager = new UserManager();
         this.roleManager = new RoleManager();
         this.assignmentManager = new AssignmentManager(this.userManager, this.roleManager);
+
+        this.backgroundExecutor = new BackgroundExecutor();
 
         this.roleManager.setAssignmentManager(this.assignmentManager);
 
@@ -44,6 +49,10 @@ public class RBACSystem {
 
     public void setCurrentUser(String username) {
         this.currentUser = username;
+    }
+
+    public BackgroundExecutor getBackgroundExecutor() {
+        return backgroundExecutor;
     }
 
     public void initialize() {

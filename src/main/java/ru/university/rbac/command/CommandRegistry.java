@@ -446,6 +446,27 @@ public class CommandRegistry {
             }
         });
 
+        parser.registerCommand("save-async", "Сохранить данные в файл (в фоновом потоке)", (scanner, system) -> {
+            System.out.println(FormatUtils.formatHeader("Асинхронное сохранение"));
+            String filename = ConsoleUtils.promptString(scanner, "Введите имя файла для сохранения", true);
+
+            System.out.println(ConsoleUtils.YELLOW + "Процесс сохранения запущен в фоне..." + ConsoleUtils.RESET);
+
+            system.getBackgroundExecutor().submitTask(() -> {
+                try (java.io.PrintWriter writer = new java.io.PrintWriter(new java.io.FileWriter(filename))) {
+                    system.getUserManager().findAll().forEach(u -> writer.println("USER;" + u.username() + ";" + u.fullname() + ";" + u.email()));
+                    system.getRoleManager().findAll().forEach(r -> writer.println("ROLE;" + r.getName() + ";" + r.getDescription()));
+                    system.getAssignmentManager().findAll().forEach(a -> writer.println("ASSIGN;" + a.user().username() + ";" + a.role().getName() + ";" + a.assignmentType()));
+
+                    logAction("SAVE_DATA_ASYNC", system, filename, "Успешно");
+                    System.out.print("\n" + ConsoleUtils.GREEN + "[ФОН] Данные успешно сохранены в " + filename + ConsoleUtils.RESET + "\n> ");
+                } catch (Exception e) {
+                    logAction("SAVE_FAIL_ASYNC", system, filename, e.getMessage());
+                    System.out.print("\n" + ConsoleUtils.RED + "[ФОН] Ошибка при фоновом сохранении: " + e.getMessage() + ConsoleUtils.RESET + "\n> ");
+                }
+            });
+        });
+
         parser.registerCommand("load", "Загрузить данные из файла", (scanner, system) -> {
             String filename = ConsoleUtils.promptString(scanner, "Введите имя файла", true);
             try (java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.FileReader(filename))) {
@@ -495,6 +516,27 @@ public class CommandRegistry {
             String report = generator.generateUserReport(system.getUserManager(), system.getAssignmentManager());
             System.out.println(report);
             handleExport(scanner, system, report, "USER_REPORT");
+        });
+
+        parser.registerCommand("report-users-async", "Отчет по пользователям (в фоновом потоке)", (scanner, system) -> {
+            System.out.println(FormatUtils.formatHeader("Асинхронная генерация отчета"));
+            String filename = ConsoleUtils.promptString(scanner, "Введите имя файла для сохранения отчета", true);
+
+            System.out.println(ConsoleUtils.YELLOW + "Задача отправлена в фон. Вы можете продолжать работу с меню." + ConsoleUtils.RESET);
+
+            system.getBackgroundExecutor().submitTask(() -> {
+                try {
+                    String report = new ReportGenerator().generateUserReport(system.getUserManager(), system.getAssignmentManager());
+                    new ReportGenerator().exportToFile(report, filename);
+
+                    logAction("REPORT_USERS_ASYNC", system, filename, "Успешно сгенерирован в фоне");
+
+                    System.out.print("\n" + ConsoleUtils.GREEN + "[ФОН] Отчет по пользователям успешно сохранен в файл: " + filename + ConsoleUtils.RESET + "\n> ");
+                } catch (Exception e) {
+                    logAction("REPORT_USERS_ASYNC_FAIL", system, filename, e.getMessage());
+                    System.out.print("\n" + ConsoleUtils.RED + "[ФОН] Ошибка генерации отчета: " + e.getMessage() + ConsoleUtils.RESET + "\n> ");
+                }
+            });
         });
 
         parser.registerCommand("report-roles", "Отчет по ролям", (scanner, system) -> {
