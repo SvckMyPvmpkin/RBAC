@@ -5,10 +5,12 @@ import ru.university.rbac.service.AssignmentManager;
 import ru.university.rbac.service.BackgroundExecutor;
 import ru.university.rbac.service.RoleManager;
 import ru.university.rbac.service.UserManager;
+import ru.university.rbac.util.AuditLog;
 
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class RBACSystem {
@@ -131,11 +133,12 @@ public class RBACSystem {
 
                 String stats = generateStatistics();
 
-                auditLog.log("SCHEDULED_STATS", "system", "statistics",
+                AuditLog.getInstance().log("SCHEDULED_STATS", "system", "statistics",
                         "Автоматическая проверка завершена. Текущее состояние: " + stats);
 
             } catch (Exception e) {
-                auditLog.log("SCHEDULED_TASK_ERROR", "system", "errors", e.getMessage());
+
+                AuditLog.getInstance().log("SCHEDULED_TASK_ERROR", "system", "errors", e.getMessage());
             }
         }, 5, 30, TimeUnit.SECONDS);
     }
