@@ -13,7 +13,7 @@ public class AuditLogTests {
 
     @BeforeEach
     public void setUp() {
-        auditLog = new AuditLog();
+        auditLog = AuditLog.getInstance();
     }
 
     @Test
